@@ -1,0 +1,6 @@
+[zsh]
+    "zsh/zshrc" = "~/.config/zsh/.zshrc"
+    "zsh/zprofile" = "~/.zprofile"
+
+[vim]
+    "vim/vimrc" = "~/.vimrc"

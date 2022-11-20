@@ -10,6 +10,9 @@ dotie uninstall [app1] [app2] ...
 dotie generate [source_dir] [target_dir] - generates a dotie_map.toml template for the dirs
 
 --dry-run - dont makes changes to files/links
+--dotfile_dir="dotfiles location"
+    - If specified use this otherwise use DOTFILES env var
+--map="map file"
 
 # dotie_map.toml template
 
