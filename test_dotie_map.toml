@@ -1,0 +1,2 @@
+[test]
+    "test/test.config" = "~/.config/test/test.config"

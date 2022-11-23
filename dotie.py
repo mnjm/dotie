@@ -3,14 +3,15 @@ import toml
 import logging
 from argparse import ArgumentParser
 
-def dotie_map_loader(map_fp):
+def load_map_file(map_fp):
+    dmap = None
     try:
         dmap = toml.load(map_fp)
-        return dmap
+        logging.debug("------------------------ Map File --------------------------------\n" + toml.dumps(dmap))
     except (toml.TomlDecodeError, IOError, FileNotFoundError) as e:
-        print("ERROR", f"Reading {map_fp} failed!")
+        logging.error("ERROR", f"Reading {map_fp} failed!")
         print(e)
-        return None
+    return dmap
 
 def arguments():
     # command line parser
@@ -32,9 +33,11 @@ def arguments():
     generate.add_argument("dest", help = "link target location")
     generate.add_argument("--fold", help = "Generate templates with folds(*)", action = 'store_true')
     args = parser.parse_args()
+    # print(args)
 
     logging.basicConfig(format = '%(levelname)s: %(message)s',
-                        level = logging.DEBUG if args.dry_run else logging.INFO)
+                        level = logging.DEBUG if args.debug else logging.INFO)
+    logging.info(f"Dry run? {args.dry_run}")
 
     # find dotfiles_dir
     if not args.dotfiles_dir:
@@ -58,10 +61,52 @@ def arguments():
 
     return args
 
+def install(args):
+    logging.info("Install")
+    if not args: return
+    dmap = load_map_file(args.map_file)
+    if not dmap: return
+    links = {}
+
+    for app in dmap:
+        logging.info("-"*50)
+        logging.info(f"App = {app}")
+
+        for tgt in dmap[app]:
+            src = os.path.expanduser(dmap[app][tgt])
+            logging.info(f"Checking {tgt} --> {src}")
+            tgt = os.path.join(args.dotfiles_dir, tgt)
+            if os.path.isfile(tgt):
+                if os.path.isfile(src) and os.path.realpath(src) != tgt:
+                    logging.error(f"Source file {src} exists! Linking cannot be performed")
+                    src = None
+            else:
+                logging.error(f"Target file {tgt} not found")
+                tgt = None
+            if src and tgt and src not in links:
+                links[src] = tgt
+
+    if not args.dry_run:
+        for src in links:
+            tgt = links[src]
+            bdir = os.path.split(src)[0]
+            if not os.path.isdir(bdir):
+                logging.debug(f"{bdir} doesnt exists! mkdir'ing")
+                os.makedirs(bdir)
+            logging.info(f"Linking {src} --> {tgt}")
+            if os.path.realpath(src) != tgt:
+                os.symlink(tgt, src)
+            else:
+                logging.info("Links exists!")
+
 def main():
     # dmap = dotie_map_loader("dotie_map.toml")
     # print(dmap)
     args = arguments()
+    if not args: return
+
+    if args.action == "install":
+        install(args)
 
 if __name__ == "__main__":
     main()
