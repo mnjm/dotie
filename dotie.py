@@ -84,6 +84,8 @@ def get_src_and_tgt_files(src, tgt, action):
                 logging.debug(f"_tgt={_tgt} _src={_src}")
                 if check_link(_src, _tgt, action):
                     return []
+                else:
+                    ret.append((_src, _tgt))
 
     elif os.path.isfile(tgt):
         if check_link(src, tgt, action):
@@ -108,8 +110,10 @@ def dotie_link(src, tgt):
 
 def dotie_unlink(src, tgt):
     if os.path.realpath(src) == tgt:
-        logging.info("Removing {tgt}")
-        os.remove(tgt)
+        logging.info(f"Removing {src}")
+        d = os.path.dirname(src)
+        os.remove(src)
+        if len(os.listdir(d)) == 0: os.rmdir(d)
     else:
         logging.error(f"{src} is not linked to {tgt}! Exiting")
     return
@@ -147,7 +151,7 @@ def dotie(args):
         for applink in links:
             if not applink: continue
             for src in applink:
-                tgt = links[src]
+                tgt = applink[src]
                 bdir = os.path.split(src)[0]
                 if not os.path.isdir(bdir):
                     logging.debug(f"{bdir} doesnt exists! mkdir'ing")

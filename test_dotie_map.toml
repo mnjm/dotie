@@ -1,4 +1,5 @@
 [test]
     "test/test.config" = "~/.config/test/test.config"
 [nvim]
+    "README.md" = "~/test.md"
     "nvim/*" = "~/.config/test_nvim"
